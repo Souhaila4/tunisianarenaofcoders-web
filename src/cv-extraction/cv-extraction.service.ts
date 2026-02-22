@@ -41,7 +41,7 @@ export class CvExtractionService {
     }
 
     const hfToken = this.config.get<string>('HUGGINGFACE_TOKEN');
-    const connectOptions = hfToken?.trim() ? { token: hfToken.trim() } : undefined;
+    const connectOptions = hfToken?.trim() ? { token: hfToken.trim() as `hf_${string}` } : undefined;
     const apiKey = this.config.get<string>('CV_EXTRACTION_API_KEY')?.trim() ?? 'null';
 
     const file = new File([new Uint8Array(buffer)], RESUME_FILENAME, { type: DOCX_MIME });

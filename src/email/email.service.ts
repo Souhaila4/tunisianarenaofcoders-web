@@ -60,4 +60,36 @@ export class EmailService {
     };
     await this.transporter.sendMail(mailOptions);
   }
+
+  async sendHackathonNotification(
+    email: string,
+    firstName: string,
+    competitionTitle: string,
+    specialty: string,
+  ): Promise<void> {
+    const mailOptions = {
+      from: 'arenaofcoders@gmail.com',
+      to: email,
+      subject: `New ${specialty} hackathon: ${competitionTitle} – Arena of Coders`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #1a1a2e;">A hackathon for your specialty is here!</h2>
+          <p>Hi ${firstName},</p>
+          <p>A new <strong>${specialty}</strong> hackathon has been created and might be perfect for you:</p>
+          <div style="background: linear-gradient(135deg, #16213e 0%, #1a1a2e 100%); padding: 24px; border-radius: 12px; margin: 20px 0;">
+            <h3 style="color: #e94560; margin-top: 0;">${competitionTitle}</h3>
+            <p style="color: #eee; margin-bottom: 0;">Log in to Arena of Coders to view details and join the competition.</p>
+          </div>
+          <p>Don't miss out – check the app for full details and deadlines.</p>
+          <p style="margin-top: 30px; color: #666; font-size: 12px;">Best regards,<br>The Arena of Coders Team</p>
+        </div>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Failed to send hackathon notification email:', error);
+    }
+  }
 }
