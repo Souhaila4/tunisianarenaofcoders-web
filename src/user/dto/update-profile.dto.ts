@@ -53,4 +53,30 @@ export class UpdateProfileDto {
   @MaxLength(50, { each: true })
   @ArrayMaxSize(30)
   skillTags?: string[];
+
+  @ApiPropertyOptional({ example: 'https://github.com/username', description: 'Lien profil GitHub' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  @IsUrl()
+  githubUrl?: string;
+
+  @ApiPropertyOptional({ example: 'https://www.linkedin.com/in/username/', description: 'Lien profil LinkedIn' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  @IsUrl()
+  linkedinUrl?: string;
+
+  @ApiPropertyOptional({ description: '3 derniers posts LinkedIn (scraped via Apify)' })
+  @IsOptional()
+  linkedinPosts?: any;
+
+  @ApiPropertyOptional({ description: '3 derniers repos GitHub avec README (scraped via Apify)' })
+  @IsOptional()
+  githubRepos?: any;
+
+  @ApiPropertyOptional({ description: 'Dernière mise à jour des données sociales' })
+  @IsOptional()
+  socialDataLastUpdate?: Date;
 }

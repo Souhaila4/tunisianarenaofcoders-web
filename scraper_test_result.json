@@ -1,0 +1,81 @@
+﻿{
+    "success":  true,
+    "count":  3,
+    "repos":  [
+                  {
+                      "name":  "Souhaila4",
+                      "url":  "https://github.com/Souhaila4/Souhaila4",
+                      "stars":  0,
+                      "forks":  0,
+                      "watchers":  0,
+                      "openIssues":  0,
+                      "size":  6,
+                      "languages":  {
+
+                                    },
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "createdAt":  "2025-11-06T00:27:54Z",
+                      "updatedAt":  "2026-02-20T14:45:50Z",
+                      "lastCommit":  {
+                                         "date":  "2026-02-20T14:45:46Z",
+                                         "message":  "Revise README for improved profile and tech details",
+                                         "author":  "souhaila karkoub"
+                                     },
+                      "readme":  "\u003cdiv align=\"center\"\u003e\n\n# 🌸 Souhaila Karkoub 🌸\n\n### Full-Stack Web \u0026 Mobile Developer\n\n\u003cimg src=\"https://readme-typing-svg.herokuapp.com?font=Fira+Code\u0026pause=1000\u0026color=F75C7E\u0026center=true\u0026vCenter=true\u0026width=435\u0026lines=Full-Stack+Developer+%F0%9F%9A%80;Web+%26+Mobile+Enthusiast+%F0%9F%93%B1;Always+Learning+New+Things+%F0%9F%8C%B1\" alt=\"Typing SVG\" /\u003e\n\n\u003cbr/\u003e\n\n[![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge\u0026logo=gmail\u0026logoColor=white)](mailto:souhaila.karkoub@esprit.tn)\n[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge\u0026logo=github\u0026logoColor=white)](https://github.com/Souhaila4)\n\n\u003c/div\u003e\n\n---\n\n## 👩‍💻 About Me\n\nI\u0027m passionate about building **scalable web and mobile applications**, solving real-world problems, and learning new technologies every day. 🚀\n\n---\n\n## 🛠️ Tech Stack\n\n### 🎨 Frontend\n![React](https://img.shields.io/badge/React-20232A?style=for-the-badge\u0026logo=react\u0026logoColor=61DAFB)\n![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge\u0026logo=nextdotjs\u0026logoColor=white)\n![Vue.js](https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge\u0026logo=vue.js\u0026logoColor=4FC08D)\n![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge\u0026logo=typescript\u0026logoColor=white)\n\n### ⚙️ Backend\n![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge\u0026logo=nestjs\u0026logoColor=white)\n![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge\u0026logo=node.js\u0026logoColor=white)\n![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)\n![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge\u0026logo=typescript\u0026logoColor=white)\n\n### 🗄️ Databases\n![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge\u0026logo=postgresql\u0026logoColor=white)\n![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge\u0026logo=mongodb\u0026logoColor=white)\n![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge\u0026"
+                  },
+                  {
+                      "name":  "devops",
+                      "url":  "https://github.com/Souhaila4/devops",
+                      "stars":  0,
+                      "forks":  0,
+                      "watchers":  0,
+                      "openIssues":  0,
+                      "size":  8,
+                      "language":  "Dockerfile",
+                      "languages":  {
+                                        "Dockerfile":  100
+                                    },
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "createdAt":  "2025-11-26T16:28:40Z",
+                      "updatedAt":  "2025-11-26T20:47:33Z",
+                      "lastCommit":  {
+                                         "date":  "2025-11-26T20:47:30Z",
+                                         "message":  "Add Dockerfile for student management application",
+                                         "author":  "souhaila karkoub"
+                                     },
+                      "readme":  "# devops"
+                  },
+                  {
+                      "name":  "BACKENDWELDIWIN",
+                      "url":  "https://github.com/Souhaila4/BACKENDWELDIWIN",
+                      "stars":  0,
+                      "forks":  0,
+                      "watchers":  0,
+                      "openIssues":  0,
+                      "size":  200,
+                      "language":  "TypeScript",
+                      "languages":  {
+                                        "TypeScript":  100,
+                                        "JavaScript":  0
+                                    },
+                      "topics":  [
+
+                                 ],
+                      "defaultBranch":  "main",
+                      "createdAt":  "2025-11-21T17:04:51Z",
+                      "updatedAt":  "2025-11-21T21:01:51Z",
+                      "lastCommit":  {
+                                         "date":  "2025-11-21T21:01:39Z",
+                                         "message":  "Remove web.config (Linux deployment)",
+                                         "author":  "souhaila karkoub"
+                                     },
+                      "readme":  "\u003cp align=\"center\"\u003e\n  \u003ca href=\"http://nestjs.com/\" target=\"blank\"\u003e\u003cimg src=\"https://nestjs.com/img/logo-small.svg\" width=\"120\" alt=\"Nest Logo\" /\u003e\u003c/a\u003e\n\u003c/p\u003e\n\n[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456\n[circleci-url]: https://circleci.com/gh/nestjs/nest\n\n  \u003cp align=\"center\"\u003eA progressive \u003ca href=\"http://nodejs.org\" target=\"_blank\"\u003eNode.js\u003c/a\u003e framework for building efficient and scalable server-side applications.\u003c/p\u003e\n    \u003cp align=\"center\"\u003e\n\u003ca href=\"https://www.npmjs.com/~nestjscore\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/npm/v/@nestjs/core.svg\" alt=\"NPM Version\" /\u003e\u003c/a\u003e\n\u003ca href=\"https://www.npmjs.com/~nestjscore\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/npm/l/@nestjs/core.svg\" alt=\"Package License\" /\u003e\u003c/a\u003e\n\u003ca href=\"https://www.npmjs.com/~nestjscore\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/npm/dm/@nestjs/common.svg\" alt=\"NPM Downloads\" /\u003e\u003c/a\u003e\n\u003ca href=\"https://circleci.com/gh/nestjs/nest\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/circleci/build/github/nestjs/nest/master\" alt=\"CircleCI\" /\u003e\u003c/a\u003e\n\u003ca href=\"https://discord.gg/G7Qnnhy\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/badge/discord-online-brightgreen.svg\" alt=\"Discord\"/\u003e\u003c/a\u003e\n\u003ca href=\"https://opencollective.com/nest#backer\" target=\"_blank\"\u003e\u003cimg src=\"https://opencollective.com/nest/backers/badge.svg\" alt=\"Backers on Open Collective\" /\u003e\u003c/a\u003e\n\u003ca href=\"https://opencollective.com/nest#sponsor\" target=\"_blank\"\u003e\u003cimg src=\"https://opencollective.com/nest/sponsors/badge.svg\" alt=\"Sponsors on Open Collective\" /\u003e\u003c/a\u003e\n  \u003ca href=\"https://paypal.me/kamilmysliwiec\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/badge/Donate-PayPal-ff3f59.svg\" alt=\"Donate us\"/\u003e\u003c/a\u003e\n    \u003ca href=\"https://opencollective.com/nest#sponsor\"  target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg\" alt=\"Support us\"\u003e\u003c/a\u003e\n  \u003ca href=\"https://twitter.com/nestframework\" target=\"_blank\"\u003e\u003cimg src=\"https://img.shields.io/twitter/fol"
+                  }
+              ]
+}

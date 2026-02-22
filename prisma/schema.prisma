@@ -51,6 +51,13 @@ model User {
   mainSpecialty   Specialty?      // Result of AI classification
   skillTags       String[]        // ["nestjs", "react", "flutter"]
 
+  // ───── Profils externes (enrichissement compétences via Apify) ─────
+  githubUrl       String?         // Lien profil GitHub
+  linkedinUrl     String?         // Lien profil LinkedIn (scraping Apify pour skills)
+  linkedinPosts   Json?           // 3 derniers posts LinkedIn (scraped via Apify)
+  githubRepos     Json?           // 3 derniers repos GitHub avec README (scraped via Apify)
+  socialDataLastUpdate DateTime?  // Dernière mise à jour des données sociales
+
   // ───── Trust & Performance ─────
 
   totalChallenges Int     @default(0)

@@ -67,6 +67,8 @@ export class AuthController {
         firstName: { type: 'string', example: 'Jane' },
         lastName: { type: 'string', example: 'Doe' },
         resume: { type: 'string', format: 'binary', description: 'Resume .docx (required, max 5MB)' },
+        githubUrl: { type: 'string', example: 'https://github.com/username', description: 'Optional' },
+        linkedinUrl: { type: 'string', example: 'https://www.linkedin.com/in/username/', description: 'Optional, used to enrich skills via Apify' },
       },
     },
   })

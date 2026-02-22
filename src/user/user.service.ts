@@ -9,6 +9,8 @@ export interface CreateUserInput {
   firstName: string;
   lastName: string;
   role?: UserRole;
+  githubUrl?: string;
+  linkedinUrl?: string;
 }
 
 const PROFILE_SELECT = {
@@ -21,6 +23,11 @@ const PROFILE_SELECT = {
   isEmailVerified: true,
   mainSpecialty: true,
   skillTags: true,
+  githubUrl: true,
+  linkedinUrl: true,
+  linkedinPosts: true,
+  githubRepos: true,
+  socialDataLastUpdate: true,
   totalChallenges: true,
   totalWins: true,
   walletBalance: true,
@@ -61,6 +68,11 @@ export class UserService {
       ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
       ...(dto.mainSpecialty !== undefined && { mainSpecialty: dto.mainSpecialty }),
       ...(dto.skillTags !== undefined && { skillTags: dto.skillTags }),
+      ...(dto.githubUrl !== undefined && { githubUrl: dto.githubUrl === '' ? null : dto.githubUrl }),
+      ...(dto.linkedinUrl !== undefined && { linkedinUrl: dto.linkedinUrl === '' ? null : dto.linkedinUrl }),
+      ...(dto.linkedinPosts !== undefined && { linkedinPosts: dto.linkedinPosts }),
+      ...(dto.githubRepos !== undefined && { githubRepos: dto.githubRepos }),
+      ...(dto.socialDataLastUpdate !== undefined && { socialDataLastUpdate: dto.socialDataLastUpdate }),
     };
 
     if (Object.keys(data).length === 0) {
@@ -94,6 +106,8 @@ export class UserService {
         firstName: data.firstName,
         lastName: data.lastName,
         role: data.role ?? UserRole.USER,
+        ...(data.githubUrl != null && data.githubUrl !== '' && { githubUrl: data.githubUrl.trim() }),
+        ...(data.linkedinUrl != null && data.linkedinUrl !== '' && { linkedinUrl: data.linkedinUrl.trim() }),
       },
       select: {
         id: true,
@@ -104,5 +118,71 @@ export class UserService {
         createdAt: true,
       },
     });
+  }
+
+  /**
+   * Récupère le classement public de tous les utilisateurs.
+   * XP calculé dynamiquement : baseXP + (skillTags.length * 150) + random(0-200)
+   * Classés par XP décroissant
+   */
+  async getLeaderboard() {
+    const users = await this.prisma.user.findMany({
+      where: {
+        isEmailVerified: true,
+        isBanned: false,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        mainSpecialty: true,
+        skillTags: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Calcul de l'XP pour chaque utilisateur
+    const usersWithXP = users.map((user) => {
+      // Formule XP : base (500-2000 selon ancienneté) + skillTags * 150 + variation aléatoire
+      const daysSinceCreation = Math.floor(
+        (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const baseXP = Math.min(500 + daysSinceCreation * 5, 2000);
+      const skillsXP = (user.skillTags?.length || 0) * 150;
+      
+      // Utiliser l'ID comme seed pour un "random" déterministe
+      const seed = user.id.charCodeAt(0) + user.id.charCodeAt(user.id.length - 1);
+      const randomVariation = (seed % 201);
+      
+      const totalXP = Math.floor(baseXP + skillsXP + randomVariation);
+
+      return {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        mainSpecialty: user.mainSpecialty || 'Non spécifié',
+        xp: totalXP,
+        skillTags: user.skillTags || [],
+      };
+    });
+
+    // Trier par XP décroissant
+    usersWithXP.sort((a, b) => b.xp - a.xp);
+
+    // Ajouter le rang
+    const leaderboard = usersWithXP.map((user, index) => ({
+      ...user,
+      rank: index + 1,
+    }));
+
+    return {
+      total: leaderboard.length,
+      users: leaderboard,
+    };
   }
 }

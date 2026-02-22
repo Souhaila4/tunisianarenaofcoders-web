@@ -12,6 +12,8 @@ import { UserService } from '../user/user.service';
 import { EmailVerificationService } from '../email-verification/email-verification.service';
 import { CvExtractionService } from '../cv-extraction/cv-extraction.service';
 import { PasswordResetService } from '../password-reset/password-reset.service';
+import { ApifyService } from '../apify/apify.service';
+import { ScraperService } from '../scraper/scraper.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { AuthTokens, AuthUser, JwtPayload } from './auth.types';
@@ -30,6 +32,8 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly emailVerificationService: EmailVerificationService,
     private readonly cvExtractionService: CvExtractionService,
+    private readonly apifyService: ApifyService,
+    private readonly scraperService: ScraperService,
     private readonly passwordResetService: PasswordResetService,
   ) {
     this.jwtExpiresIn =
@@ -48,6 +52,8 @@ export class AuthService {
         firstName: dto.firstName.trim(),
         lastName: dto.lastName.trim(),
         role: UserRole.USER,
+        ...(dto.githubUrl && { githubUrl: dto.githubUrl.trim() }),
+        ...(dto.linkedinUrl && { linkedinUrl: dto.linkedinUrl.trim() }),
       });
 
       if (resumeBuffer?.length) {
@@ -61,6 +67,64 @@ export class AuthService {
           }
         } catch {
           // CV extraction failed (e.g. Hugging Face timeout) — signup continues without it
+        }
+      }
+
+      // Enrichissement compétences via Apify (LinkedIn)
+      if (dto.linkedinUrl?.trim()) {
+        console.log('[SIGNUP] LinkedIn URL detected:', dto.linkedinUrl);
+        try {
+          const linkedInSkills = await this.apifyService.getLinkedInSkills(dto.linkedinUrl.trim());
+          console.log('[SIGNUP] LinkedIn skills scraped:', linkedInSkills.length, 'skills');
+          if (linkedInSkills.length > 0) {
+            const current = await this.userService.findById(user.id);
+            const existingTags = (current as { skillTags?: string[] })?.skillTags ?? [];
+            const merged = Array.from(new Set([...existingTags.map((s) => s.toLowerCase()), ...linkedInSkills])).slice(0, 30);
+            await this.userService.updateProfile(user.id, { skillTags: merged });
+          }
+        } catch (err) {
+          console.error('[SIGNUP] LinkedIn skills scraping failed:', err);
+          // Apify failed or timeout — signup continues without LinkedIn skills
+        }
+
+        // DÉSACTIVÉ: Récupération des posts LinkedIn (nécessite abonnement payant Apify)
+        // Pour réactiver, voir: https://console.apify.com/actors
+        /*
+        try {
+          console.log('[SIGNUP] Scraping LinkedIn posts...');
+          const linkedInPosts = await this.apifyService.getLinkedInPosts(dto.linkedinUrl.trim());
+          console.log('[SIGNUP] LinkedIn posts scraped:', linkedInPosts.length, 'posts');
+          if (linkedInPosts.length > 0) {
+            await this.userService.updateProfile(user.id, { 
+              linkedinPosts: linkedInPosts,
+              socialDataLastUpdate: new Date()
+            });
+            console.log('[SIGNUP] LinkedIn posts saved to database');
+          }
+        } catch (err) {
+          console.error('[SIGNUP] LinkedIn posts scraping failed:', err);
+          // Scraping posts LinkedIn a échoué - continue sans posts
+        }
+        */
+      }
+
+      // Récupération des 3 derniers repos GitHub (via API REST gratuite)
+      if (dto.githubUrl?.trim()) {
+        console.log('[SIGNUP] GitHub URL detected:', dto.githubUrl);
+        try {
+          console.log('[SIGNUP] Scraping GitHub repos via free REST API...');
+          const githubRepos = await this.scraperService.getGitHubRepos(dto.githubUrl.trim());
+          console.log('[SIGNUP] GitHub repos scraped:', githubRepos.length, 'repos');
+          if (githubRepos.length > 0) {
+            await this.userService.updateProfile(user.id, { 
+              githubRepos: githubRepos,
+              socialDataLastUpdate: new Date()
+            });
+            console.log('[SIGNUP] GitHub repos saved to database');
+          }
+        } catch (err) {
+          console.error('[SIGNUP] GitHub repos scraping failed:', err);
+          // Scraping GitHub a échoué - continue sans repos
         }
       }
 

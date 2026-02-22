@@ -1,6 +1,221 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🏆 ArenaOfCoders — Backend
+
+> REST API powering the **ArenaOfCoders** competitive coding platform — built with **NestJS**, **Prisma ORM**, and **MongoDB**.
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Database](#database)
+- [Running the App](#running-the-app)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Scripts](#scripts)
+
+---
+
+## 🔍 Overview
+
+ArenaOfCoders is a competitive coding platform where developers can join coding arenas, compete in hackathons, stream their sessions live, and be ranked on leaderboards. This repository contains the **NestJS backend** that handles all business logic, authentication, data persistence, and third-party integrations.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | [NestJS](https://nestjs.com) v11 |
+| Language | TypeScript |
+| ORM | [Prisma](https://www.prisma.io) v6 |
+| Database | MongoDB |
+| Auth | JWT + Passport.js |
+| Email | Nodemailer |
+| Live Streaming | [Stream.io Node SDK](https://getstream.io) |
+| CV Extraction | AI / Gradio Client |
+| GitHub Scraper | GitHub REST API |
+| Validation | class-validator + class-transformer |
+| API Docs | Swagger (`@nestjs/swagger`) |
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── auth/                  # JWT authentication, guards, strategies
+├── user/                  # User CRUD, profile management
+├── email/                 # Email sending service (Nodemailer)
+├── email-verification/    # Email verification flow
+├── password-reset/        # Forgot / reset password flow
+├── cv-extraction/         # AI-powered CV parsing and skill extraction
+├── scraper/               # GitHub profile scraping via REST API
+├── apify/                 # LinkedIn/social data enrichment
+├── stream/                # Live stream session management (Stream.io)
+├── admin/                 # Admin-only routes and management
+├── prisma/                # Prisma service (DB connection)
+├── app.module.ts          # Root application module
+└── main.ts                # Application entry point
+prisma/
+├── schema.prisma          # Database schema (User, roles, specialties)
+└── seed.ts                # Database seeder
+```
+
+---
+
+## ✨ Features
+
+- **Authentication** — Register, login, JWT access tokens, refresh flow
+- **Email Verification** — Token-based email confirmation on signup
+- **Password Reset** — Secure forgot-password / reset-password via email
+- **User Profiles** — Avatar, GitHub URL, LinkedIn URL, skill tags, specialty classification
+- **CV Extraction** — Upload CV → AI extracts skills and classifies specialty (`FRONTEND`, `BACKEND`, `FULLSTACK`, `MOBILE`, `DATA`, `DEVOPS`, etc.)
+- **GitHub Scraper** — Fetches last 3 public repos (stars, forks, languages, README, last commit) via GitHub REST API
+- **Social Enrichment** — LinkedIn posts and GitHub repos cached on user profile
+- **Live Streaming** — Stream.io integration for real-time coding sessions
+- **Leaderboard** — Track `totalChallenges`, `totalWins`, `walletBalance` per user
+- **Admin Panel** — User management, banning, role assignment
+- **Swagger Docs** — Auto-generated API docs at `/api`
+
+---
+
+## ✅ Prerequisites
+
+- Node.js >= 18
+- npm >= 9
+- A running **MongoDB** instance (local or Atlas)
+- (Optional) A **GitHub Personal Access Token** to increase scraper rate limit
+
+---
+
+## 📦 Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Souhaila4/tunisianarenaofcoders-web.git
+cd tunisianarenaofcoders-web
+
+# Switch to backend branch
+git checkout backend
+
+# Install dependencies
+npm install
+```
+
+---
+
+## 🔐 Environment Variables
+
+Create a `.env` file at the project root:
+
+```env
+# MongoDB connection string
+DATABASE_URL="mongodb+srv://<user>:<password>@cluster.mongodb.net/arenaofcoders"
+
+# JWT
+JWT_SECRET="your_jwt_secret_key"
+JWT_EXPIRES_IN="7d"
+
+# Email (Nodemailer)
+MAIL_HOST="smtp.gmail.com"
+MAIL_PORT=587
+MAIL_USER="your_email@gmail.com"
+MAIL_PASS="your_app_password"
+
+# Stream.io
+STREAM_API_KEY="your_stream_api_key"
+STREAM_API_SECRET="your_stream_api_secret"
+
+# GitHub Scraper (optional — increases rate limit from 60 to 5000 req/h)
+GITHUB_TOKEN="your_github_personal_access_token"
+
+# App
+PORT=3000
+FRONTEND_URL="http://localhost:3001"
+```
+
+---
+
+## 🗄 Database
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to MongoDB
+npx prisma db push
+
+# (Optional) Seed the database
+npm run seed
+
+# Open Prisma Studio (visual DB browser)
+npx prisma studio
+```
+
+---
+
+## 🚀 Running the App
+
+```bash
+# Development (watch mode)
+npm run start:dev
+
+# Production build
+npm run build
+npm run start:prod
+```
+
+The API will be available at **http://localhost:3000**.
+
+---
+
+## 📖 API Documentation
+
+Swagger UI is available at:
+
+```
+http://localhost:3000/api
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Unit tests
+npm run test
+
+# End-to-end tests
+npm run test:e2e
+
+# Coverage report
+npm run test:cov
+```
+
+---
+
+## 📜 Scripts
+
+| Script | Description |
+|---|---|
+| `npm run start:dev` | Start in watch/development mode |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start:prod` | Run compiled production build |
+| `npm run lint` | Lint and auto-fix with ESLint |
+| `npm run format` | Format code with Prettier |
+| `npm run seed` | Seed MongoDB with initial data |
+
+---
+
+## 📄 License
+
+This project is **UNLICENSED** — private and proprietary.
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest

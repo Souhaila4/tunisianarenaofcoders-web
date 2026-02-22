@@ -1,3 +1,23 @@
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
+
+// Charger le .env depuis le répertoire racine du projet
+const envPath = path.join(__dirname, '..', '..', '.env');
+console.log('[DOTENV] __dirname:', __dirname);
+console.log('[DOTENV] Chemin .env calculé:', envPath);
+console.log('[DOTENV] Fichier existe:', fs.existsSync(envPath));
+
+const result = dotenv.config({ path: envPath });
+if (result.error) {
+  console.error('[DOTENV] Erreur:', result.error.message);
+} else {
+  const keys = Object.keys(result.parsed || {});
+  console.log('[DOTENV] Chargé avec succès, variables trouvées:', keys.length);
+  console.log('[DOTENV] Clés chargées:', keys.join(', '));
+  console.log('[DOTENV] APIFY_API_TOKEN dans parsed?', 'APIFY_API_TOKEN' in (result.parsed || {}));
+}
+
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -25,6 +45,12 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  // Afficher le statut de la clé Apify pour débogage
+  console.log('[STARTUP] APIFY_API_TOKEN présent:', !!process.env.APIFY_API_TOKEN);
+  if (process.env.APIFY_API_TOKEN) {
+    console.log('[STARTUP] APIFY_API_TOKEN (premiers 20 chars):', process.env.APIFY_API_TOKEN.substring(0, 20) + '...');
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }
