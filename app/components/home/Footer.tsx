@@ -66,7 +66,7 @@ export default function Footer({
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/arena" className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors text-sm">
+                <Link href="/hackathon" className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors text-sm">
                   {product.arena}
                 </Link>
               </li>

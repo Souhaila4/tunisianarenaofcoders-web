@@ -15,12 +15,12 @@ export default function HomeNavbar() {
   const [userLoaded, setUserLoaded] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [arenaDropdownOpen, setArenaDropdownOpen] = useState(false);
+  const [hackathonDropdownOpen, setHackathonDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-  const arenaRef = useRef<HTMLDivElement>(null);
+  const hackathonRef = useRef<HTMLDivElement>(null);
   const t = translations[lang];
 
   useEffect(() => {
@@ -46,8 +46,8 @@ export default function HomeNavbar() {
         setLangOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node))
         setProfileOpen(false);
-      if (arenaRef.current && !arenaRef.current.contains(e.target as Node))
-        setArenaDropdownOpen(false);
+      if (hackathonRef.current && !hackathonRef.current.contains(e.target as Node))
+        setHackathonDropdownOpen(false);
     }
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
@@ -99,15 +99,15 @@ export default function HomeNavbar() {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-8">
-            <div className="relative" ref={arenaRef}>
+            <div className="relative" ref={hackathonRef}>
               <button
                 type="button"
-                onClick={() => setArenaDropdownOpen((o) => !o)}
+                onClick={() => setHackathonDropdownOpen((o) => !o)}
                 className="flex items-center gap-1 text-white hover:text-[var(--accent)] transition-colors font-medium"
               >
-                L&apos;Arène
+                Hackathon
                 <svg
-                  className={`w-4 h-4 transition-transform ${arenaDropdownOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 transition-transform ${hackathonDropdownOpen ? "rotate-180" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -115,26 +115,19 @@ export default function HomeNavbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              {arenaDropdownOpen && (
+              {hackathonDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 py-2 min-w-[200px] rounded-xl bg-[rgba(13,26,45,0.95)] backdrop-blur-xl border border-white/10 shadow-xl">
                   <Link
-                    href="/arena"
+                    href="/hackathon"
                     className="block px-4 py-2.5 text-sm text-white hover:bg-white/5 hover:text-[var(--accent)]"
-                    onClick={() => setArenaDropdownOpen(false)}
+                    onClick={() => setHackathonDropdownOpen(false)}
                   >
-                    Rooms
-                  </Link>
-                  <Link
-                    href="/arena#competitions"
-                    className="block px-4 py-2.5 text-sm text-white hover:bg-white/5 hover:text-[var(--accent)]"
-                    onClick={() => setArenaDropdownOpen(false)}
-                  >
-                    Compétitions
+                    Salles
                   </Link>
                   <Link
                     href="/classements"
                     className="block px-4 py-2.5 text-sm text-white hover:bg-white/5 hover:text-[var(--accent)]"
-                    onClick={() => setArenaDropdownOpen(false)}
+                    onClick={() => setHackathonDropdownOpen(false)}
                   >
                     Classements
                   </Link>
@@ -158,6 +151,12 @@ export default function HomeNavbar() {
               className="text-white hover:text-[var(--accent)] transition-colors font-medium"
             >
               Tarifs
+            </Link>
+            <Link
+              href="/chat"
+              className="text-white hover:text-[var(--accent)] transition-colors font-medium"
+            >
+              Chat
             </Link>
           </nav>
 
@@ -248,11 +247,11 @@ export default function HomeNavbar() {
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-white/10">
             <nav className="flex flex-col gap-2">
-              <Link href="/arena" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Rooms</Link>
-              <Link href="/arena#competitions" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Compétitions</Link>
+              <Link href="/hackathon" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Hackathon</Link>
               <Link href="/classements" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Classements</Link>
               <Link href="/#solutions" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Solutions</Link>
               <Link href="/#pricing" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Tarifs</Link>
+              <Link href="/chat" onClick={() => setMobileMenuOpen(false)} className="px-4 py-2 text-white hover:bg-white/10 rounded-lg">Chat</Link>
             </nav>
           </div>
         )}

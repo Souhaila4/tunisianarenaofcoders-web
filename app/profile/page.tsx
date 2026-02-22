@@ -5,15 +5,68 @@ import { getProfile } from "../lib/api";
 import Link from "next/link";
 import PlatformNavbar from "../components/PlatformNavbar";
 
+const RADAR_AXES = ["FRONTEND", "BACK", "SECUI", "DEVOPS", "U/ML", "MOBILE"] as const;
+/** Mots-clés par axe pour dériver les scores du radar à partir des skillTags. */
+const AXIS_KEYWORDS: Record<(typeof RADAR_AXES)[number], string[]> = {
+  FRONTEND: ["react", "vue", "angular", "next", "html", "css", "javascript", "typescript", "frontend", "ui", "sass", "tailwind"],
+  BACK: ["node", "nestjs", "express", "api", "backend", "java", "spring", "python", "django", "fastapi", "php", "ruby"],
+  SECUI: ["security", "cybersec", "sécurité", "oauth", "jwt", "pentest", "cryptography"],
+  DEVOPS: ["devops", "docker", "kubernetes", "ci/cd", "aws", "azure", "gcp", "linux", "terraform", "ansible"],
+  "U/ML": ["machine learning", "ml", "ai", "tensorflow", "pytorch", "data", "pandas", "numpy", "nlp", "deep learning"],
+  MOBILE: ["react native", "flutter", "ios", "android", "mobile", "kotlin", "swift"],
+};
+
+function computeRadarScores(mainSpecialty: string | null | undefined, skillTags: string[]): number[] {
+  const tags = (skillTags || []).map((s) => s.toLowerCase());
+  const specialty = (mainSpecialty || "").toUpperCase();
+  return RADAR_AXES.map((axis) => {
+    let score = 25;
+    const keywords = AXIS_KEYWORDS[axis];
+    const matchCount = keywords.filter((kw) => tags.some((t) => t.includes(kw) || kw.includes(t))).length;
+    score += Math.min(50, matchCount * 12);
+    if (specialty === axis || (axis === "BACK" && specialty === "BACKEND")) score += 25;
+    return Math.min(100, Math.round(score));
+  });
+}
+
+type ProfileUser = {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  mainSpecialty?: string;
+  skillTags?: string[];
+  githubUrl?: string | null;
+  linkedinUrl?: string | null;
+  globalRank?: number;
+  level?: number;
+  xp?: number;
+  linkedinPosts?: Array<{
+    text: string;
+    publishedAt: string;
+    url?: string;
+    likes?: number;
+    comments?: number;
+  }>;
+  githubRepos?: Array<{
+    name: string;
+    description?: string;
+    url: string;
+    stars?: number;
+    readme?: string;
+    language?: string;
+    updatedAt?: string;
+  }>;
+};
+
 export default function ProfilePage() {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDarkMode] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     getProfile()
-      .then((u) => { if (mounted) setUser(u); })
+      .then((u) => { if (mounted) setUser(u as ProfileUser); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
@@ -34,14 +87,17 @@ export default function ProfilePage() {
     );
   }
 
+  const skills = user.skillTags ?? [];
+  const radarValues = computeRadarScores(user.mainSpecialty, skills);
+  const competenceScore = Math.min(100, 50 + Math.min(30, skills.length * 3) + (user.mainSpecialty ? 15 : 0));
+
   return (
     <div className={`min-h-screen font-sans relative ${isDarkMode ? "text-white" : "bg-gray-50 text-slate-900"}`}>
       <PlatformNavbar />
 
-      {/* Contenu profil — grille type maquette */}
       <main className="max-w-7xl mx-auto p-6 md:p-8 space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Carte 1 : Résumé profil (avatar, nom, rang, niveau, XP, Modifier le profil) */}
+          {/* Carte 1 : Résumé profil */}
           <div className={`rounded-2xl border p-6 ${isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-slate-200 shadow-lg"}`}>
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-4">
@@ -57,18 +113,34 @@ export default function ProfilePage() {
               <p className="text-sm text-cyan-500 font-semibold uppercase tracking-wider mt-1">{user?.mainSpecialty || "Développeur"}</p>
               <div className="flex gap-3 mt-4 w-full justify-center flex-wrap">
                 <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isDarkMode ? "bg-cyan-500/20 text-cyan-400" : "bg-cyan-100 text-cyan-700"}`}>
-                  RANG MONDIAL #{(user as any)?.globalRank ?? "1,204"}
+                  RANG MONDIAL #{user?.globalRank ?? "—"}
                 </span>
                 <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isDarkMode ? "bg-white/10 text-white" : "bg-slate-100 text-slate-700"}`}>
-                  NIVEAU {(user as any)?.level ?? "1"}
+                  NIVEAU {user?.level ?? "1"}
                 </span>
               </div>
+              {(user.githubUrl || user.linkedinUrl) && (
+                <div className="flex flex-wrap gap-2 mt-3 justify-center">
+                  {user.githubUrl && (
+                    <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 text-white/90 hover:bg-white/20 text-xs font-medium">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
+                      GitHub
+                    </a>
+                  )}
+                  {user.linkedinUrl && (
+                    <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 text-white/90 hover:bg-white/20 text-xs font-medium">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+              )}
               <div className="w-full mt-4 text-left">
                 <p className="text-xs text-white/60 mb-1">Expérience (XP)</p>
                 <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500" style={{ width: `${Math.min(100, (((user as any)?.xp ?? 12450) / 15000) * 100)}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500" style={{ width: `${Math.min(100, ((user?.xp ?? 0) / 15000) * 100)}%` }} />
                 </div>
-                <p className="text-xs text-white/50 mt-1">{((user as any)?.xp ?? 12450).toLocaleString()} / 15,000</p>
+                <p className="text-xs text-white/50 mt-1">{(user?.xp ?? 0).toLocaleString()} / 15,000</p>
               </div>
               <Link
                 href="/settings"
@@ -80,51 +152,46 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Carte 2 : Radar d'expertise */}
+          {/* Carte 2 : Radar d'expertise (dynamique CV + LinkedIn + GitHub) */}
           <div className={`rounded-2xl border p-6 ${isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-slate-200 shadow-lg"}`}>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-lg font-bold">Radar d&apos;Expertise</h2>
-                <p className="text-xs text-white/50 mt-0.5">Visualisation des compétences techniques</p>
+                <p className="text-xs text-white/50 mt-0.5">À partir de CV, LinkedIn et GitHub</p>
               </div>
-              <span className="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-400">Top 1% Global</span>
+              {skills.length > 0 && <span className="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-400">{skills.length} compétences</span>}
             </div>
             <div className="flex justify-center">
-              <RadarChart values={[85, 90, 60, 70, 65, 45]} labels={["FRONTEND", "BACK", "SECUI", "DEVOPS", "U/ML", "MOBILE"]} />
+              <RadarChart values={radarValues} labels={[...RADAR_AXES]} />
             </div>
           </div>
 
-          {/* Carte 3 : Preuve de compétence */}
+          {/* Carte 3 : Preuve de compétence (score dynamique) */}
           <div className={`rounded-2xl border p-6 ${isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-slate-200 shadow-lg"}`}>
             <div className="mb-4">
               <h2 className="text-lg font-bold">Preuve de Compétence</h2>
-              <p className="text-xs text-white/50 mt-0.5">Métriques de performance brute</p>
+              <p className="text-xs text-white/50 mt-0.5">Synthèse des 3 sources (CV, LinkedIn, GitHub)</p>
             </div>
             <div className="flex items-baseline gap-2 mb-1">
-              <span className="text-4xl font-black">94</span>
+              <span className="text-4xl font-black">{competenceScore}</span>
               <span className="text-2xl font-bold text-white/60">/100</span>
             </div>
             <p className="text-xs text-emerald-400 flex items-center gap-1 mb-4">
-              <span>↑</span> +2% ce mois — Score d&apos;efficience globale
+              Score basé sur vos compétences déclarées et votre spécialité
             </p>
-            <div className="space-y-3">
-              {[
-                { label: "Algorithmique & Structures", value: 98 },
-                { label: "Qualité du Code (Clean Code)", value: 92 },
-                { label: "Résolution de Problèmes", value: 89 },
-                { label: "Vitesse d'Exécution", value: 95 },
-              ].map((item) => (
-                <div key={item.label}>
-                  <div className="flex justify-between text-xs mb-0.5">
-                    <span className="text-white/70">{item.label}</span>
-                    <span className="font-semibold">{item.value}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full rounded-full bg-cyan-500" style={{ width: `${item.value}%` }} />
-                  </div>
+            {skills.length > 0 ? (
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                <p className="text-xs text-white/60 mb-1">Compétences fusionnées (meilleures des 3 sources)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {skills.slice(0, 24).map((tag) => (
+                    <span key={tag} className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 text-xs font-medium">{tag}</span>
+                  ))}
+                  {skills.length > 24 && <span className="text-white/50 text-xs">+{skills.length - 24}</span>}
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <p className="text-sm text-white/50">Ajoutez un CV et/ou des liens LinkedIn et GitHub (inscription ou paramètres) pour afficher vos compétences.</p>
+            )}
           </div>
         </div>
 
@@ -190,6 +257,250 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Section LinkedIn Posts */}
+        {user.linkedinPosts && user.linkedinPosts.length > 0 && (
+          <div className={`rounded-2xl border p-6 ${isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-slate-200 shadow-lg"}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <span className="text-blue-500">📱</span>
+                Derniers Posts LinkedIn
+              </h2>
+              {user.linkedinUrl && (
+                <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-cyan-400 hover:underline">Voir le profil</a>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {user.linkedinPosts.map((post, idx) => (
+                <div key={idx} className={`rounded-xl border p-4 ${isDarkMode ? "bg-white/5 border-white/10" : "bg-slate-50 border-slate-200"}`}>
+                  <p className="text-sm text-white/80 line-clamp-4 mb-3">{post.text}</p>
+                  <div className="flex items-center justify-between text-xs text-white/50">
+                    <span>{new Date(post.publishedAt).toLocaleDateString('fr-FR')}</span>
+                    <div className="flex gap-3">
+                      {post.likes !== undefined && <span>👍 {post.likes}</span>}
+                      {post.comments !== undefined && <span>💬 {post.comments}</span>}
+                    </div>
+                  </div>
+                  {post.url && (
+                    <a href={post.url} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:underline mt-2 inline-block">Voir le post →</a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Section GitHub Repos */}
+        {user.githubRepos && user.githubRepos.length > 0 && (
+          <div className={`rounded-2xl border p-6 ${isDarkMode ? "bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10 backdrop-blur-sm" : "bg-white border-slate-200 shadow-lg"}`}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <span className="text-2xl">🐙</span>
+                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  Derniers Repos GitHub
+                </span>
+              </h2>
+              {user.githubUrl && (
+                <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+                  Voir le profil <span>→</span>
+                </a>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {user.githubRepos.map((repo, idx) => (
+                <div 
+                  key={idx} 
+                  className={`group rounded-xl border p-5 transition-all duration-300 hover:scale-[1.02] ${
+                    isDarkMode 
+                      ? "bg-gradient-to-br from-slate-900/50 to-slate-800/30 border-white/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/10" 
+                      : "bg-gradient-to-br from-white to-slate-50 border-slate-200 hover:border-cyan-500/50 hover:shadow-xl"
+                  }`}
+                >
+                  {/* Header with name and stars */}
+                  <div className="flex items-start justify-between mb-3 pb-3 border-b border-white/10">
+                    <h3 className="font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors text-base flex-1 line-clamp-1">{repo.name}</h3>
+                    {repo.stars > 0 && (
+                      <span className="text-sm text-yellow-400 flex items-center gap-1 flex-shrink-0 ml-2 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                        ⭐ {repo.stars}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  {repo.description && (
+                    <p className="text-sm text-white/80 mb-4 line-clamp-2 min-h-[2.5rem] leading-relaxed">{repo.description}</p>
+                  )}
+
+                  {/* Topics/Tags */}
+                  {repo.topics && repo.topics.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {repo.topics.slice(0, 4).map((topic, topicIdx) => (
+                        <span 
+                          key={topicIdx} 
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all hover:scale-105 ${
+                            isDarkMode 
+                              ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30" 
+                              : "bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200"
+                          }`}
+                        >
+                          #{topic}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Language breakdown */}
+                  {repo.languages && Object.keys(repo.languages).length > 0 ? (
+                    <div className="mb-4">
+                      <div className="flex gap-0.5 h-2.5 rounded-full overflow-hidden mb-2 shadow-inner">
+                        {Object.entries(repo.languages).map(([lang, percent], langIdx) => (
+                          <div
+                            key={langIdx}
+                            className={`transition-all hover:opacity-80 ${
+                              langIdx === 0 ? 'bg-gradient-to-r from-violet-500 to-violet-600' :
+                              langIdx === 1 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                              langIdx === 2 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                              'bg-gradient-to-r from-orange-500 to-orange-600'
+                            }`}
+                            style={{ width: `${percent}%` }}
+                            title={`${lang}: ${percent}%`}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[10px]">
+                        {Object.entries(repo.languages).slice(0, 3).map(([lang, percent], langIdx) => (
+                          <span key={langIdx} className="text-white/60 flex items-center gap-1">
+                            <span className={`inline-block w-2.5 h-2.5 rounded-full ${
+                              langIdx === 0 ? 'bg-violet-500' :
+                              langIdx === 1 ? 'bg-blue-500' :
+                              'bg-green-500'
+                            }`}></span>
+                            <span className="font-medium">{lang}</span>
+                            <span className="text-white/40">{percent}%</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : repo.language ? (
+                    <span className={`inline-block px-3 py-1.5 rounded-lg text-xs font-semibold mb-4 ${
+                      isDarkMode ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" : "bg-violet-100 text-violet-700 border border-violet-200"
+                    }`}>
+                      {repo.language}
+                    </span>
+                  ) : null}
+
+                  {/* Stats Row - Watchers, Forks, Issues */}
+                  <div className={`flex items-center gap-4 text-xs mb-4 pb-4 border-b ${
+                    isDarkMode ? "border-white/10" : "border-slate-200"
+                  }`}>
+                    <span className="flex items-center gap-1.5 text-white/60 hover:text-white/80 transition-colors" title="Watchers">
+                      <span className="text-sm">👁️</span> {repo.watchers}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-white/60 hover:text-white/80 transition-colors" title="Forks">
+                      <span className="text-sm">🍴</span> {repo.forks}
+                    </span>
+                    {repo.openIssues > 0 && (
+                      <span className="flex items-center gap-1.5 text-orange-400/80 hover:text-orange-400 transition-colors" title="Open Issues">
+                        <span className="text-sm">⚠️</span> {repo.openIssues}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Last commit info */}
+                  {repo.lastCommit && (
+                    <div className={`mb-4 p-3 rounded-lg transition-all ${
+                      isDarkMode 
+                        ? "bg-black/30 border border-white/5 hover:bg-black/40" 
+                        : "bg-slate-100 border border-slate-200 hover:bg-slate-50"
+                    }`}>
+                      <div className="text-[10px] text-white/40 mb-1.5 font-medium uppercase tracking-wide">Dernier commit</div>
+                      <div className="text-xs text-white/80 mb-2 line-clamp-2 leading-relaxed">{repo.lastCommit.message}</div>
+                      <div className="flex justify-between items-center text-[10px] text-white/50">
+                        <span className="flex items-center gap-1">
+                          <span className="text-xs">👤</span> {repo.lastCommit.author}
+                        </span>
+                        <span>{new Date(repo.lastCommit.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* License */}
+                  {repo.license && (
+                    <div className="text-[10px] text-white/40 mb-3 flex items-center gap-1">
+                      <span>📜</span> {repo.license}
+                    </div>
+                  )}
+
+                  {/* README preview */}
+                  {repo.readme && (
+                    <details className="mb-3 group/details">
+                      <summary className={`cursor-pointer text-xs font-semibold transition-colors flex items-center gap-2 py-2 px-3 rounded-lg ${
+                        isDarkMode 
+                          ? "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10" 
+                          : "text-cyan-600 hover:text-cyan-500 hover:bg-cyan-50"
+                      }`}>
+                        <span className="text-sm">📄</span>
+                        <span>Voir README</span>
+                        <span className="ml-auto text-[10px] opacity-60">Cliquez pour lire</span>
+                      </summary>
+                      <div className={`mt-3 p-4 rounded-lg border text-xs leading-relaxed overflow-auto max-h-64 ${
+                        isDarkMode 
+                          ? "bg-black/40 border-white/10 text-white/70" 
+                          : "bg-white border-slate-200 text-slate-700"
+                      }`}>
+                        {(() => {
+                          // Nettoyer le README: enlever les balises HTML et markdown
+                          let cleaned = repo.readme
+                            .replace(/<[^>]*>/g, ' ') // Enlever les balises HTML
+                            .replace(/!\[.*?\]\(.*?\)/g, '') // Enlever les images markdown
+                            .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Convertir les liens en texte
+                            .replace(/#{1,6}\s/g, '') // Enlever les # de titres
+                            .replace(/\*\*([^*]+)\*\*/g, '$1') // Enlever le bold markdown
+                            .replace(/\*([^*]+)\*/g, '$1') // Enlever l'italic markdown
+                            .replace(/`([^`]+)`/g, '$1') // Enlever les backticks
+                            .replace(/\n{3,}/g, '\n\n') // Réduire les sauts de ligne multiples
+                            .replace(/\s{2,}/g, ' ') // Réduire les espaces multiples
+                            .trim();
+                          
+                          // Limiter la longueur
+                          if (cleaned.length > 600) {
+                            cleaned = cleaned.substring(0, 600) + '...';
+                          }
+                          
+                          // Diviser en paragraphes
+                          return cleaned.split('\n\n').map((para, i) => (
+                            <p key={i} className="mb-2 last:mb-0">{para}</p>
+                          ));
+                        })()}
+                      </div>
+                    </details>
+                  )}
+
+                  {/* Footer - Dates and link */}
+                  <div className={`flex justify-between items-center pt-3 border-t ${
+                    isDarkMode ? "border-white/10" : "border-slate-200"
+                  }`}>
+                    <div className="text-[10px] text-white/30">
+                      Mise à jour: {new Date(repo.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    <a 
+                      href={repo.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className={`text-xs font-semibold transition-all hover:gap-2 flex items-center gap-1 px-3 py-1.5 rounded-lg ${
+                        isDarkMode 
+                          ? "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10" 
+                          : "text-cyan-600 hover:text-cyan-500 hover:bg-cyan-50"
+                      }`}
+                    >
+                      Voir le repo <span>→</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

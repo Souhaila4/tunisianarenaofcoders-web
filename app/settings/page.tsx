@@ -13,6 +13,8 @@ export default function SettingsPage() {
   const [lastName, setLastName] = useState("");
   const [mainSpecialty, setMainSpecialty] = useState("");
   const [skillTags, setSkillTags] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -24,6 +26,8 @@ export default function SettingsPage() {
           setLastName(u.lastName || "");
           setMainSpecialty(u.mainSpecialty || "");
           setSkillTags((u.skillTags || []).join(", "));
+          setGithubUrl(u.githubUrl || "");
+          setLinkedinUrl(u.linkedinUrl || "");
         }
       })
       .catch(() => { if (mounted) setMessage({ type: "error", text: "Erreur de chargement." }); })
@@ -47,6 +51,8 @@ export default function SettingsPage() {
         lastName,
         mainSpecialty,
         skillTags: skillTags.split(",").map((s) => s.trim()).filter(Boolean),
+        githubUrl: githubUrl.trim() || undefined,
+        linkedinUrl: linkedinUrl.trim() || undefined,
       });
       setMessage({ type: "success", text: "Profil mis à jour." });
       const u = await getProfile();
@@ -98,6 +104,14 @@ export default function SettingsPage() {
           <div className="space-y-1">
             <label className="text-xs uppercase tracking-wider text-cyan-500 font-bold">Compétences (séparées par des virgules)</label>
             <input value={skillTags} onChange={(e) => setSkillTags(e.target.value)} placeholder="REACT, NODE, TYPESCRIPT..." className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white/5 text-white placeholder:text-white/30 focus:ring-2 focus:ring-cyan-500 outline-none" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wider text-cyan-500 font-bold">Lien GitHub (optionnel)</label>
+            <input type="url" value={githubUrl} onChange={(e) => setGithubUrl(e.target.value)} placeholder="https://github.com/username" className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white/5 text-white placeholder:text-white/30 focus:ring-2 focus:ring-cyan-500 outline-none" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wider text-cyan-500 font-bold">Lien LinkedIn (optionnel)</label>
+            <input type="url" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://www.linkedin.com/in/username/" className="w-full border border-white/10 rounded-xl px-4 py-3 bg-white/5 text-white placeholder:text-white/30 focus:ring-2 focus:ring-cyan-500 outline-none" />
           </div>
           <button type="submit" className="w-full bg-cyan-500 text-black py-4 rounded-xl font-bold hover:bg-cyan-400 transition-colors">
             Enregistrer

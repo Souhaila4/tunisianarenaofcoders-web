@@ -61,18 +61,23 @@ export default function PlatformNavbar() {
           <Link href="/" className={`text-sm font-medium transition-colors ${isActive("/") && pathname === "/" ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-white hover:text-cyan-400"}`}>
             {t.nav.home}
           </Link>
-          <Link href="/arena" className={`text-sm font-medium transition-colors ${isActive("/arena") ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-white hover:text-cyan-400"}`}>
-            {t.nav.arena}
+          <Link href="/hackathon" className={`text-sm font-medium transition-colors ${isActive("/hackathon") ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-white hover:text-cyan-400"}`}>
+            {t.nav.hackathon}
           </Link>
           <Link href="/classements" className={`text-sm font-medium transition-colors ${isActive("/classements") ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-white hover:text-cyan-400"}`}>
             {t.nav.leaderboards}
           </Link>
-          <Link href="/arena#defis" className="text-sm font-medium text-white hover:text-cyan-400 transition-colors">
+          <Link href="/hackathon" className="text-sm font-medium text-white hover:text-cyan-400 transition-colors">
             {t.nav.challenges}
           </Link>
           <Link href="/profile" className={`text-sm font-medium transition-colors ${isActive("/profile") ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-white hover:text-cyan-400"}`}>
             {t.nav.profile}
           </Link>
+          {user?.role === "ADMIN" && (
+            <Link href="/dashboard" className={`text-sm font-medium transition-colors ${isActive("/dashboard") ? "text-cyan-400 border-b-2 border-cyan-400 pb-0.5" : "text-amber-400 hover:text-amber-300"}`}>
+              Dashboard
+            </Link>
+          )}
         </nav>
 
         {/* Barre de recherche */}

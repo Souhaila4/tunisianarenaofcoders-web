@@ -20,7 +20,8 @@ export default function SignInPage() {
       if (res?.tokens?.accessToken) {
         saveToken(res.tokens.accessToken);
         setMessage('AUTHENTICATED — REDIRECTING...');
-        router.push('/arena');
+        const role = (res as { user?: { role?: string } })?.user?.role;
+        router.push(role === 'ADMIN' ? '/dashboard' : '/hackathon');
       } else {
         setMessage('ACCESS DENIED: NO TOKEN');
       }

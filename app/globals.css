@@ -107,6 +107,115 @@ body.a11y-high-contrast button:focus-visible {
 .animate-flow-line {
   animation: flow-line 10s linear infinite;
 }
+
+/* Stream Chat - thème sombre cohérent avec Arena of Coders */
+.str-chat__container {
+  --str-chat-primary-color: #00d4ff;
+  --str-chat-primary-color-rgb: 0, 212, 255;
+}
+.str-chat__message-list,
+.str-chat__message-input,
+.str-chat__message-input-wrapper,
+.str-chat__empty-placeholder {
+  background: rgba(13, 17, 23, 0.6) !important;
+}
+.str-chat__message-input-inner {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+}
+.str-chat__message-input-inner::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.str-chat__empty-placeholder-content {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+.str-chat__message-bubble {
+  border-radius: 12px !important;
+}
+.str-chat__message-simple-content {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Stream Video - boutons de contrôle visibles sur fond sombre */
+.str-video__call-controls,
+.str-video-call-controls-wrapper .str-video__call-controls {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 8px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+/* Tous les boutons : fond + bordure visibles (micro, caméra, partage, layout, quitter) */
+.str-video__call-controls__button,
+.str-video__composite-button__button-group,
+.str-video__call-controls .str-video__call-controls__button,
+.str-video-call-controls-wrapper .str-video__call-controls__button,
+.str-video-call-controls-wrapper .str-video__composite-button__button-group {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #fff !important;
+  visibility: visible !important;
+}
+.str-video__call-controls__button {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  --str-video__icon-default: #ffffff !important;
+  --str-video__icon-hover: #ffffff !important;
+  --str-video__icon-active: #00d4ff !important;
+  --str-video__icon-disabled: rgba(255,255,255,0.5) !important;
+}
+.str-video__composite-button__button-group {
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
+/* Forcer les icônes à être blanches : le SDK utilise mask + background-color */
+.str-video__call-controls__button .str-video__icon,
+.str-video__composite-button__button-group .str-video__call-controls__button .str-video__icon,
+.str-video__composite-button .str-video__icon,
+.str-video-call-controls-wrapper .str-video__icon {
+  background-color: #ffffff !important;
+  -webkit-mask-color: #ffffff !important;
+  mask-color: #ffffff !important;
+}
+.str-video__call-controls__button:hover .str-video__icon,
+.str-video__composite-button__button-group .str-video__call-controls__button:hover .str-video__icon,
+.str-video-call-controls-wrapper .str-video__call-controls__button:hover .str-video__icon {
+  background-color: #00d4ff !important;
+}
+.str-video__call-controls__button--variant-danger .str-video__icon,
+.str-video__call-controls__button.str-video__call-controls__button--variant-danger .str-video__icon {
+  background-color: #f87171 !important;
+}
+.str-video__call-controls__button:hover,
+.str-video__composite-button__button-group:hover {
+  background: rgba(0, 212, 255, 0.2) !important;
+  border-color: rgba(0, 212, 255, 0.5) !important;
+  color: #00d4ff !important;
+}
+.str-video__call-controls__button--variant-danger,
+.str-video__call-controls__button[aria-label*="Leave"],
+.str-video__call-controls__button[aria-label*="Quitter"] {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #f87171 !important;
+}
+.str-video__call-controls__button--variant-danger:hover,
+.str-video__call-controls__button[aria-label*="Leave"]:hover,
+.str-video__call-controls__button[aria-label*="Quitter"]:hover {
+  background: rgba(239, 68, 68, 0.35) !important;
+  border-color: #ef4444 !important;
+}
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }

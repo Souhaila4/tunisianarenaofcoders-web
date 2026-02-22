@@ -11,6 +11,8 @@ export default function SignUpPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [githubUrl, setGithubUrl] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -33,6 +35,8 @@ export default function SignUpPage() {
       formData.append('firstName', firstName);
       formData.append('lastName', lastName);
       formData.append('resume', resumeFile);
+      if (githubUrl.trim()) formData.append('githubUrl', githubUrl.trim());
+      if (linkedinUrl.trim()) formData.append('linkedinUrl', linkedinUrl.trim());
       const res = (await signUpWithResume(formData)) as { email?: string; message?: string; tokens?: { accessToken?: string } };
       if (res?.tokens?.accessToken) {
         saveToken(res.tokens.accessToken);
@@ -155,6 +159,28 @@ export default function SignUpPage() {
                 onChange={(e) => setResumeFile(e.target.files?.[0] ?? null)}
                 className="w-full bg-[#0a0f1e]/60 border border-white/10 p-4 rounded-xl text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-cyan-500/20 file:text-cyan-400 hover:file:bg-cyan-500/30"
                 required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-cyan-400/80 tracking-[0.2em] ml-1">GITHUB (optionnel)</label>
+              <input 
+                type="url"
+                placeholder="https://github.com/username"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                className="w-full bg-[#0a0f1e]/60 border border-white/10 p-4 rounded-xl text-white placeholder:text-white/10 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-cyan-400/80 tracking-[0.2em] ml-1">LINKEDIN (optionnel — utilisé pour enrichir vos compétences via Apify)</label>
+              <input 
+                type="url"
+                placeholder="https://www.linkedin.com/in/username/"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                className="w-full bg-[#0a0f1e]/60 border border-white/10 p-4 rounded-xl text-white placeholder:text-white/10 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all font-mono text-sm"
               />
             </div>
 

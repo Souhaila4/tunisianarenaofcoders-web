@@ -29,7 +29,7 @@ function VerifyForm() {
         saveToken(res.tokens.accessToken);
       }
       setMessage('IDENTITY VERIFIED. ACCESS GRANTED.');
-      setTimeout(() => router.push('/arena'), 1500);
+      setTimeout(() => router.push('/hackathon'), 1500);
     } catch (err: unknown) {
       const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message?: string }).message) : 'Code invalide ou expiré.';
       setMessage(msg);
