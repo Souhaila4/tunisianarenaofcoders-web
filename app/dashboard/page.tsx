@@ -10,7 +10,14 @@ import {
   getAdminRecentUsers,
   getAdminUsers,
   triggerN8nWebhookTest,
+  getCompetitions,
+  createCompetition,
+  changeCompetitionStatus,
   type AdminUserRow,
+  type Competition,
+  type CompetitionStatus,
+  type Specialty,
+  type CreateCompetitionPayload,
 } from "../lib/api";
 
 const PAGE_SIZE = 20;
@@ -75,6 +82,24 @@ export default function DashboardPage() {
   const [n8nSuccess, setN8nSuccess] = useState<string | null>(null);
   const [n8nError, setN8nError] = useState<string | null>(null);
 
+  // ── Competitions state ──
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [compLoading, setCompLoading] = useState(false);
+  const [compError, setCompError] = useState<string | null>(null);
+  const [compSuccess, setCompSuccess] = useState<string | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [compForm, setCompForm] = useState<CreateCompetitionPayload>({
+    title: "",
+    description: "",
+    difficulty: "MEDIUM",
+    specialty: undefined,
+    startDate: "",
+    endDate: "",
+    rewardPool: 0,
+    maxParticipants: undefined,
+  });
+
   useEffect(() => {
     if (!getToken()) {
       router.replace("/signin");
@@ -119,6 +144,53 @@ export default function DashboardPage() {
     e.preventDefault();
     setUsersQuery(usersSearch.trim());
     setUsersPage(0);
+  };
+
+  // ── Load competitions ──
+  const loadCompetitions = () => {
+    setCompLoading(true);
+    setCompError(null);
+    getCompetitions({ limit: 50 })
+      .then((res) => setCompetitions(res.data ?? []))
+      .catch((err) => setCompError(err?.message ?? "Erreur de chargement"))
+      .finally(() => setCompLoading(false));
+  };
+
+  useEffect(() => {
+    if (!loading) loadCompetitions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
+  const handleCreateCompetition = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateLoading(true);
+    setCompError(null);
+    setCompSuccess(null);
+    try {
+      await createCompetition(compForm);
+      setCompSuccess("Hackathon créé avec succès !");
+      setShowCreateForm(false);
+      setCompForm({ title: "", description: "", difficulty: "MEDIUM", specialty: undefined, startDate: "", endDate: "", rewardPool: 0, maxParticipants: undefined });
+      loadCompetitions();
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Erreur de création";
+      setCompError(msg);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: CompetitionStatus) => {
+    setCompError(null);
+    setCompSuccess(null);
+    try {
+      await changeCompetitionStatus(id, newStatus);
+      setCompSuccess(`Statut mis à jour : ${newStatus}`);
+      loadCompetitions();
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Erreur";
+      setCompError(msg);
+    }
   };
 
   const handleRunStartupIdeaScraper = async () => {
@@ -426,17 +498,259 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            {/* Placeholder : Thématiques hackathon (workflow à venir) */}
-            <section className="rounded-2xl border border-dashed border-cyan-500/40 bg-cyan-500/5 p-8">
-              <h2 className="text-lg font-semibold text-cyan-400 mb-2">Thématiques hackathon</h2>
-              <p className="text-white/60 text-sm mb-4">
-                Après intégration du workflow de création automatique des thématiques, vous pourrez ici accepter ou refuser chaque proposition. Les thématiques acceptées seront visibles pour les utilisateurs.
-              </p>
-              <div className="text-white/40 text-sm italic">Zone d’acceptation à venir.</div>
+            {/* ── Gestion des Hackathons / Compétitions ── */}
+            <section className="rounded-2xl border border-white/10 bg-white/5 p-6 mb-8">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span className="text-xl">🏆</span> Gestion des Hackathons
+                  </h2>
+                  <p className="text-white/50 text-xs mt-0.5">Créez et publiez des hackathons par spécialité. Une fois confirmés (OPEN_FOR_ENTRY), ils apparaissent sur la page /hackathon.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateForm((v) => !v); setCompError(null); setCompSuccess(null); }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500 text-black font-semibold text-sm hover:bg-cyan-400 transition-colors"
+                >
+                  {showCreateForm ? "Annuler" : "+ Créer un hackathon"}
+                </button>
+              </div>
+
+              {/* Create form */}
+              {showCreateForm && (
+                <form onSubmit={handleCreateCompetition} className="rounded-xl border border-white/10 bg-white/5 p-5 mb-5 space-y-4">
+                  <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">Nouveau hackathon</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-white/60 mb-1 block">Titre *</label>
+                      <input
+                        required
+                        type="text"
+                        value={compForm.title}
+                        onChange={(e) => setCompForm((f) => ({ ...f, title: e.target.value }))}
+                        placeholder="Ex : Arena Spring Hackathon 2026"
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm placeholder:text-white/30"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-white/60 mb-1 block">Description *</label>
+                      <textarea
+                        required
+                        rows={3}
+                        value={compForm.description}
+                        onChange={(e) => setCompForm((f) => ({ ...f, description: e.target.value }))}
+                        placeholder="Brief du challenge, objectifs, critères de jugement…"
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm placeholder:text-white/30 resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Spécialité *</label>
+                      <select
+                        required
+                        value={compForm.specialty ?? ""}
+                        onChange={(e) => setCompForm((f) => ({ ...f, specialty: e.target.value as Specialty || undefined }))}
+                        className="w-full px-3 py-2 rounded-xl bg-[#0d1a2d] border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm"
+                      >
+                        <option value="">-- Choisir --</option>
+                        {(["FRONTEND","BACKEND","FULLSTACK","MOBILE","DATA","BI","CYBERSECURITY","DESIGN","DEVOPS"] as Specialty[]).map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Difficulté</label>
+                      <select
+                        value={compForm.difficulty}
+                        onChange={(e) => setCompForm((f) => ({ ...f, difficulty: e.target.value as "EASY"|"MEDIUM"|"HARD" }))}
+                        className="w-full px-3 py-2 rounded-xl bg-[#0d1a2d] border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm"
+                      >
+                        <option value="EASY">Facile</option>
+                        <option value="MEDIUM">Intermédiaire</option>
+                        <option value="HARD">Difficile</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Date de début *</label>
+                      <input
+                        required
+                        type="datetime-local"
+                        value={compForm.startDate}
+                        onChange={(e) => setCompForm((f) => ({ ...f, startDate: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Date de fin *</label>
+                      <input
+                        required
+                        type="datetime-local"
+                        value={compForm.endDate}
+                        onChange={(e) => setCompForm((f) => ({ ...f, endDate: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Récompense (€/pts)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={compForm.rewardPool ?? 0}
+                        onChange={(e) => setCompForm((f) => ({ ...f, rewardPool: Number(e.target.value) }))}
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-white/60 mb-1 block">Participants max (vide = illimité)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={compForm.maxParticipants ?? ""}
+                        onChange={(e) => setCompForm((f) => ({ ...f, maxParticipants: e.target.value ? Number(e.target.value) : undefined }))}
+                        placeholder="Illimité"
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 focus:border-cyan-500/50 focus:outline-none text-white text-sm placeholder:text-white/30"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateForm(false)}
+                      className="px-4 py-2 rounded-xl border border-white/20 text-white/70 text-sm hover:bg-white/5"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={createLoading}
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-cyan-500 text-black font-semibold text-sm hover:bg-cyan-400 disabled:opacity-50"
+                    >
+                      {createLoading ? (
+                        <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Création…</>
+                      ) : "Créer le hackathon"}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Feedback messages */}
+              {compSuccess && (
+                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  {compSuccess}
+                </div>
+              )}
+              {compError && (
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{compError}</div>
+              )}
+
+              {/* Competitions list */}
+              {compLoading ? (
+                <div className="py-8 text-center text-white/50 text-sm">Chargement des hackathons…</div>
+              ) : competitions.length === 0 ? (
+                <div className="py-8 text-center text-white/40 text-sm italic">Aucun hackathon créé pour l&apos;instant.</div>
+              ) : (
+                <div className="space-y-3">
+                  {competitions.map((comp) => (
+                    <CompetitionRow
+                      key={comp.id}
+                      competition={comp}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </div>
+              )}
             </section>
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// CompetitionRow sub-component
+// ─────────────────────────────────────────────────────────────────
+const STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: "Planifié",
+  OPEN_FOR_ENTRY: "Ouvert ✅",
+  RUNNING: "En cours 🔥",
+  SUBMISSION_CLOSED: "Soumissions fermées",
+  EVALUATING: "Évaluation",
+  COMPLETED: "Terminé",
+  ARCHIVED: "Archivé",
+};
+const STATUS_NEXT: Record<string, CompetitionStatus | null> = {
+  SCHEDULED: "OPEN_FOR_ENTRY",
+  OPEN_FOR_ENTRY: "RUNNING",
+  RUNNING: "SUBMISSION_CLOSED",
+  SUBMISSION_CLOSED: "EVALUATING",
+  EVALUATING: "COMPLETED",
+  COMPLETED: "ARCHIVED",
+  ARCHIVED: null,
+};
+const STATUS_NEXT_LABEL: Record<string, string> = {
+  SCHEDULED: "✅ Confirmer (publier)",
+  OPEN_FOR_ENTRY: "▶ Démarrer",
+  RUNNING: "🔒 Fermer soumissions",
+  SUBMISSION_CLOSED: "🔍 Évaluation",
+  EVALUATING: "🏁 Terminer",
+  COMPLETED: "📦 Archiver",
+};
+const STATUS_COLOR: Record<string, string> = {
+  SCHEDULED: "bg-amber-500/20 text-amber-300",
+  OPEN_FOR_ENTRY: "bg-emerald-500/20 text-emerald-300",
+  RUNNING: "bg-cyan-500/20 text-cyan-300",
+  SUBMISSION_CLOSED: "bg-orange-500/20 text-orange-300",
+  EVALUATING: "bg-violet-500/20 text-violet-300",
+  COMPLETED: "bg-blue-500/20 text-blue-300",
+  ARCHIVED: "bg-white/10 text-white/40",
+};
+const DIFF_COLOR: Record<string, string> = {
+  EASY: "text-emerald-400",
+  MEDIUM: "text-amber-400",
+  HARD: "text-red-400",
+};
+
+function CompetitionRow({
+  competition: c,
+  onStatusChange,
+}: {
+  competition: Competition;
+  onStatusChange: (id: string, status: CompetitionStatus) => void;
+}) {
+  const nextStatus = STATUS_NEXT[c.status];
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${STATUS_COLOR[c.status] ?? "bg-white/10 text-white/50"}`}>
+            {STATUS_LABELS[c.status] ?? c.status}
+          </span>
+          {c.specialty && (
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/20 text-indigo-300">
+              {c.specialty}
+            </span>
+          )}
+          <span className={`text-xs font-semibold ${DIFF_COLOR[c.difficulty] ?? "text-white/60"}`}>
+            {c.difficulty}
+          </span>
+        </div>
+        <p className="font-semibold text-white mt-1 truncate">{c.title}</p>
+        <p className="text-xs text-white/40 mt-0.5">
+          {new Date(c.startDate).toLocaleDateString("fr-FR")} → {new Date(c.endDate).toLocaleDateString("fr-FR")}
+          {" · "}{c._count?.participants ?? 0} participant{(c._count?.participants ?? 0) !== 1 ? "s" : ""}
+          {c.rewardPool ? ` · 🏆 ${c.rewardPool}` : ""}
+        </p>
+      </div>
+      {nextStatus && (
+        <button
+          type="button"
+          onClick={() => onStatusChange(c.id, nextStatus)}
+          className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-400 font-semibold text-xs transition-colors"
+        >
+          {STATUS_NEXT_LABEL[c.status] ?? `→ ${nextStatus}`}
+        </button>
+      )}
     </div>
   );
 }

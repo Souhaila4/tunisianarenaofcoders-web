@@ -284,3 +284,129 @@ export async function getLeaderboard(): Promise<{ total: number; users: Leaderbo
   const res = await request('/user/leaderboard', { method: 'GET' });
   return res as { total: number; users: LeaderboardUser[] };
 }
+
+/** Résultat du mint de certificat NFT. */
+export type CertificateResult = {
+  user: { firstName: string; lastName: string };
+  imageIpfsUrl: string;
+  metadataIpfsUrl: string;
+  tokenId: string;
+  serial: number;
+};
+
+/** Génère un certificat NFT sur Hedera pour l'utilisateur et le hackathon donnés. */
+export async function generateCertificate(
+  userId: string,
+  hackathonName: string,
+): Promise<CertificateResult> {
+  const res = await request('/certificate/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, hackathonName }),
+  });
+  return res as CertificateResult;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// COMPETITIONS / HACKATHONS
+// ─────────────────────────────────────────────────────────────────
+
+export type CompetitionStatus =
+  | 'SCHEDULED'
+  | 'OPEN_FOR_ENTRY'
+  | 'RUNNING'
+  | 'SUBMISSION_CLOSED'
+  | 'EVALUATING'
+  | 'COMPLETED'
+  | 'ARCHIVED';
+
+export type CompetitionDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+
+export type Specialty =
+  | 'FRONTEND'
+  | 'BACKEND'
+  | 'FULLSTACK'
+  | 'MOBILE'
+  | 'DATA'
+  | 'BI'
+  | 'CYBERSECURITY'
+  | 'DESIGN'
+  | 'DEVOPS';
+
+export type Competition = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: CompetitionDifficulty;
+  specialty: Specialty | null;
+  status: CompetitionStatus;
+  startDate: string;
+  endDate: string;
+  rewardPool: number;
+  maxParticipants: number | null;
+  createdAt: string;
+  _count?: { participants: number };
+};
+
+export type CreateCompetitionPayload = {
+  title: string;
+  description: string;
+  difficulty: CompetitionDifficulty;
+  specialty?: Specialty;
+  startDate: string;
+  endDate: string;
+  rewardPool?: number;
+  maxParticipants?: number;
+};
+
+/** Liste les compétitions (admin : toutes, user : filtrées). */
+export async function getCompetitions(params?: {
+  status?: CompetitionStatus;
+  specialty?: Specialty;
+  onlyActive?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<{ data: Competition[]; total: number; page: number; limit: number }> {
+  const sp = new URLSearchParams();
+  if (params?.status) sp.set('status', params.status);
+  if (params?.specialty) sp.set('specialty', params.specialty);
+  if (params?.onlyActive != null) sp.set('onlyActive', String(params.onlyActive));
+  if (params?.page) sp.set('page', String(params.page));
+  if (params?.limit) sp.set('limit', String(params.limit));
+  const q = sp.toString();
+  const res = await request(`/competitions${q ? `?${q}` : ''}`, { method: 'GET' });
+  return res as { data: Competition[]; total: number; page: number; limit: number };
+}
+
+/** Crée un hackathon (admin uniquement). */
+export async function createCompetition(payload: CreateCompetitionPayload): Promise<Competition> {
+  const res = await request('/competitions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return res as Competition;
+}
+
+/** Change le statut d'une compétition (admin uniquement). */
+export async function changeCompetitionStatus(
+  id: string,
+  status: CompetitionStatus,
+): Promise<Competition> {
+  const res = await request(`/competitions/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  return res as Competition;
+}
+
+/** Rejoindre une compétition (utilisateur connecté). */
+export async function joinCompetition(id: string): Promise<{ message: string }> {
+  const res = await request(`/competitions/${id}/join`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  return res as { message: string };
+}
