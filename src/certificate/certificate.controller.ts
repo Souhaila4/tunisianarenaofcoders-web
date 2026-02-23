@@ -1,0 +1,47 @@
+import {
+    Controller,
+    Post,
+    Body,
+    UseGuards,
+    HttpCode,
+    HttpStatus,
+} from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CertificateService } from './certificate.service';
+import { GenerateCertificateDto } from './certificate.dto';
+
+@ApiTags('certificate')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
+@Controller('certificate')
+export class CertificateController {
+    constructor(private readonly certificateService: CertificateService) { }
+
+    @Post('generate')
+    @HttpCode(HttpStatus.CREATED)
+    @ApiOperation({
+        summary: 'Generate a certificate NFT',
+        description:
+            'Generates a personalized certificate image, uploads it to IPFS via Pinata, and mints an NFT on Hedera.',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'NFT minted successfully',
+        schema: {
+            example: {
+                user: { firstName: 'Alice', lastName: 'Martin' },
+                imageIpfsUrl: 'ipfs://QmXxx...',
+                metadataIpfsUrl: 'ipfs://QmYyy...',
+                tokenId: '0.0.123456',
+                serial: 1,
+            },
+        },
+    })
+    async generate(@Body() dto: GenerateCertificateDto) {
+        return this.certificateService.generateCertificateNFT(
+            dto.userId,
+            dto.hackathonName,
+        );
+    }
+}

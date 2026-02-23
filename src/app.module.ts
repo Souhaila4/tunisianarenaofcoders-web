@@ -11,6 +11,7 @@ import { AdminModule } from './admin/admin.module';
 import { ScraperModule } from './scraper/scraper.module';
 import { CompetitionModule } from './competition/competition.module';
 import { NotificationModule } from './notification/notification.module';
+import { CertificateModule } from './certificate/certificate.module';
 import * as path from 'path';
 
 @Module({
@@ -28,6 +29,7 @@ import * as path from 'path';
     AdminModule,
     CompetitionModule,
     NotificationModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
